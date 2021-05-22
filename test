@@ -1,0 +1,9 @@
+#! /bin/bash
+
+file="$(printf "%04d" $1).txt"
+cargo build --release
+cd tools
+cargo run --release --bin tester \
+    in/$file ../target/release/ahc003 > out/$file
+cargo run --release --bin vis in/$file out/$file
+cat out/$file | clip.exe
