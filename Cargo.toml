@@ -1,0 +1,13 @@
+[package]
+name = "ahc003"
+version = "0.1.0"
+authors = ["cunitac <cunitac@gmail.com>"]
+edition = "2018"
+license = "MIT"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+input = { git = "https://github.com/cunitac/procon-rs-lib" }
+prelude = { git = "https://github.com/cunitac/procon-rs-lib" }
+timer = { git = "https://github.com/cunitac/procon-rs-lib" }

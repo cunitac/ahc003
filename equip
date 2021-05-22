@@ -1,0 +1,9 @@
+#! /bin/bash
+
+cargo equip \
+    --exclude-atcoder-crates \
+    --minify libs \
+    --resolve-cfgs \
+    --remove docs comments \
+    --rustfmt \
+    --check | clip.exe
