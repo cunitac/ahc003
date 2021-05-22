@@ -12,9 +12,11 @@ use {
 
 #[test]
 fn test() {
-    const N_TESTCASE: usize = 100;
+    const N_TESTCASE: usize = 1000;
 
     let mut score_sum = 0.0;
+
+    eprintln!("Score average:");
 
     for i in 0..N_TESTCASE {
         let file_name = format!("{:04}.txt", i);
@@ -30,8 +32,13 @@ fn test() {
 
         score_sum += test.score() as f64;
 
-        eprintln!("{:.0}", score_sum / (i as f64 + 1.0));
+        eprint!(
+            "\r\t{:.0}\taverage of {:4}",
+            score_sum / (i as f64 + 1.0),
+            i + 1
+        );
     }
+    eprintln!();
 }
 
 impl Judge for TestJudge {
