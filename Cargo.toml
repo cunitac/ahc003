@@ -9,5 +9,4 @@ license = "MIT"
 
 [dependencies]
 input = { git = "https://github.com/cunitac/procon-rs-lib", features = ["interactive"] }
-prelude = { git = "https://github.com/cunitac/procon-rs-lib" }
 timer = { git = "https://github.com/cunitac/procon-rs-lib" }
