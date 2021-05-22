@@ -2,8 +2,10 @@
 
 cargo equip \
     --exclude-atcoder-crates \
-    --minify libs \
     --resolve-cfgs \
     --remove docs comments \
     --rustfmt \
-    --check | clip.exe
+    --check \
+    --minify libs \
+    --bin ahc003 \
+    | clip.exe
