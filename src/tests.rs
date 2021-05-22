@@ -7,16 +7,31 @@ use {
         solve,
     },
     input::*,
+    std::fs::File,
 };
 
 #[test]
 fn test() {
-    let mut source = Source::new(std::fs::File::open("tools/in/0000.txt").unwrap());
-    let mut test = read!(from source, TestJudge);
+    const N_TESTCASE: usize = 100;
 
-    solve(&mut test);
+    let mut score_sum = 0.0;
 
-    eprintln!("{}", test.score());
+    for i in 0..N_TESTCASE {
+        let file_name = format!("{:04}.txt", i);
+        let mut source = Source::new(File::open(format!("tools/in/{}", file_name)).unwrap());
+        let mut test = read!(from source, TestJudge);
+        solve(&mut test);
+
+        let mut out = File::create(format!("tools/out/{}", file_name)).unwrap();
+        for path in &test.paths {
+            use std::io::Write;
+            writeln!(&mut out, "{}", path).unwrap();
+        }
+
+        score_sum += test.score() as f64;
+
+        eprintln!("{:.0}", score_sum / (i as f64 + 1.0));
+    }
 }
 
 impl Judge for TestJudge {
@@ -57,6 +72,7 @@ impl Judge for TestJudge {
         }
         assert_eq!(pos, self.queries[self.k].goal);
         self.path_lengths.push(len);
+        self.paths.push(path.to_string());
         let len_with_error = (len as f64 * self.queries[self.k].error).round() as u32;
         self.k += 1;
         len_with_error
@@ -66,6 +82,7 @@ impl Judge for TestJudge {
 impl TestJudge {
     fn score(&self) -> u64 {
         assert_eq!(self.k, N_QUERY);
+        assert_eq!(self.paths.len(), N_QUERY);
         assert_eq!(self.path_lengths.len(), N_QUERY);
 
         let raw_score = (0..N_QUERY)
@@ -90,6 +107,7 @@ pub struct TestJudge {
     len_v: Vec<Vec<u32>>,
     queries: Vec<Query>,
     path_lengths: Vec<u32>,
+    paths: Vec<String>,
 }
 #[derive(Clone, Copy, Debug)]
 struct Query {
@@ -111,6 +129,7 @@ impl FromSource for TestJudge {
             len_v: read!([[u32; GRID_SIZE]; GRID_SIZE - 1]),
             queries: read!([Query; N_QUERY]),
             path_lengths: Vec::with_capacity(N_QUERY),
+            paths: Vec::with_capacity(N_QUERY),
         })
     }
 }
