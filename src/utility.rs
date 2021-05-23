@@ -1,14 +1,14 @@
 extern crate grid;
 
 use {
-    crate::consts::{EDGE_LEN_MEAN, GRID_SIZE, N_EDGE},
+    crate::consts::{GRID_SIZE, N_EDGE},
     std::ops::{Index, IndexMut},
 };
 
 #[derive(Clone, Copy, Debug)]
 pub struct Samples {
-    n: usize,
-    sum: f64,
+    pub n: usize,
+    pub sum: f64,
 }
 
 impl Samples {
@@ -23,7 +23,7 @@ impl Samples {
         }
     }
     pub fn val(&self) -> f64 {
-        self.checked_val().unwrap_or(EDGE_LEN_MEAN)
+        self.checked_val().unwrap_or(4000.0)
     }
     pub fn add(&mut self, sample: f64) {
         self.n += 1;
