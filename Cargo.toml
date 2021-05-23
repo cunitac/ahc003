@@ -8,5 +8,7 @@ license = "MIT"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyway-ord = { git = "https://github.com/cunitac/procon-rs-lib" }
+grid = { git = "https://github.com/cunitac/procon-rs-lib" }
 input = { git = "https://github.com/cunitac/procon-rs-lib", features = ["interactive"] }
 timer = { git = "https://github.com/cunitac/procon-rs-lib" }
