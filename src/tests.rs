@@ -103,7 +103,7 @@ impl TestJudge {
             })
             .sum::<f64>();
 
-        (raw_score * 2312311.0).round() as u64
+        (raw_score * 2_312_311.0).round() as u64
     }
 }
 

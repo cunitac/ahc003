@@ -24,7 +24,7 @@ impl StepFitting {
         let mut front_sum = 0.0;
         let mut front_sq_sum = 0.0;
 
-        let (mid, _var_sum, front_avg, back_avg) = self.samples[..self.samples.len() - 1]
+        let (mid, _residual, front_avg, back_avg) = self.samples[..self.samples.len() - 1]
             .iter()
             .enumerate()
             .map(|(i, samples)| {
@@ -42,14 +42,31 @@ impl StepFitting {
                 let front_var = front_sq_sum / front_count as f64 - front_avg.powi(2);
                 let back_var = back_sq_sum / back_count as f64 - back_avg.powi(2);
 
-                (i, front_var + back_var, front_avg, back_avg)
+                let front_residual = front_var * front_count as f64;
+                let back_residual = back_var * back_count as f64;
+
+                let residual = (front_residual + back_residual) / count as f64;
+
+                (i, residual, front_avg, back_avg)
             })
-            .filter(|&(_i, var_sum, _front_avg, _back_avg)| var_sum.is_finite())
-            .min_by_key(|&(_i, var_sum, _front_avg, _back_avg)| AnywayOrd(var_sum))
-            .unwrap_or((14, 0.0, 4000.0, 4000.0));
+            .filter(|&(_i, residual, _front_avg, _back_avg)| residual.is_finite())
+            .min_by_key(|&(_i, residual, _front_avg, _back_avg)| AnywayOrd(residual))
+            .unwrap_or((14, std::f64::NAN, 5000.0, 5000.0));
+
         let mut ret = vec![back_avg; self.samples.len()];
         for ret in ret[..=mid].iter_mut() {
             *ret = front_avg;
+        }
+        for (ret, sample) in ret.iter_mut().zip(self.samples.iter()) {
+            let sample_avg = if sample.is_empty() {
+                4000.0
+            } else {
+                sample.iter().sum::<f64>() / sample.len() as f64
+            };
+
+            const ROAD_WEIGHT: f64 = 2.0;
+            *ret = (sample_avg + ROAD_WEIGHT * *ret) / (1.0 + ROAD_WEIGHT);
+            *ret = ret.max(0.0);
         }
         ret
     }
