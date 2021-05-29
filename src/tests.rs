@@ -1,4 +1,5 @@
 extern crate input;
+extern crate timer;
 
 use {
     crate::{
@@ -8,6 +9,7 @@ use {
     },
     input::*,
     std::fs::File,
+    timer::Timer,
 };
 
 #[test]
@@ -22,7 +24,11 @@ fn test() {
         let file_name = format!("{:04}.txt", i);
         let mut source = Source::new(File::open(format!("tools/in/{}", file_name)).unwrap());
         let mut test = read!(from source, TestJudge);
+        let timer = Timer::new(2.0);
+
         solve(&mut test);
+
+        assert!(!timer.is_over());
 
         let mut out = File::create(format!("tools/out/{}", file_name)).unwrap();
         for path in &test.paths {
@@ -32,11 +38,12 @@ fn test() {
 
         score_sum += test.score() as f64;
 
-        eprint!(
-            "\r\t{:.0}\taverage of {:4}",
-            score_sum / (i as f64 + 1.0),
-            i + 1
-        );
+        let showed_score = if i > 100 {
+            score_sum / (i as f64 + 1.0)
+        } else {
+            std::f64::NAN
+        };
+        eprint!("\r\t{:.0}\taverage of {:4}", showed_score, i + 1);
     }
     eprintln!();
 }

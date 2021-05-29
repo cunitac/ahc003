@@ -19,11 +19,23 @@ fn solve(judge: &mut impl Judge) {
 
     let mut history = vec![];
 
-    for _turn in 0..N_QUERY {
+    for turn in 0..N_QUERY {
         let Query { start, goal } = judge.next_query();
 
-        let len_h = step_h.iter().map(|step| step.vals()).collect::<Vec<_>>();
-        let len_v = step_v.iter().map(|step| step.vals()).collect::<Vec<_>>();
+        let time = turn as f64 / N_QUERY as f64;
+        let road_weight = if time < 0.3 {
+            time * 1.55 / 0.3
+        } else {
+            2.0 - time * 1.5
+        };
+        let mut len_h = step_h
+            .iter()
+            .map(|step| step.vals(road_weight))
+            .collect::<Vec<_>>();
+        let mut len_v = step_v
+            .iter()
+            .map(|step| step.vals(road_weight))
+            .collect::<Vec<_>>();
         let edge_val = |edge: Edge| match edge {
             Edge::H(i, j) => len_h[i][j],
             Edge::V(i, j) => len_v[j][i],
@@ -35,6 +47,20 @@ fn solve(judge: &mut impl Judge) {
         let (path, _nodes, edges) = dijkstra(start.into(), goal.into(), adj);
         let length = judge.path_length(&path) as f64;
         history.push((edges.clone(), length));
+
+        len_h = step_h
+            .iter()
+            .map(|step| step.vals(road_weight))
+            .collect::<Vec<_>>();
+        len_v = step_v
+            .iter()
+            .map(|step| step.vals(road_weight))
+            .collect::<Vec<_>>();
+        let edge_val = |edge: Edge| match edge {
+            Edge::H(i, j) => len_h[i][j],
+            Edge::V(i, j) => len_v[j][i],
+        };
+
         step_h = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
         step_v = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
         for (edges, length) in &history {

@@ -16,7 +16,7 @@ impl StepFitting {
     pub fn add(&mut self, index: usize, sample: f64) {
         self.samples[index].push(sample);
     }
-    pub fn vals(&self) -> Vec<f64> {
+    pub fn vals(&self, road_weight: f64) -> Vec<f64> {
         let count = self.samples.iter().map(|s| s.len()).sum::<usize>();
         let sum = self.samples.iter().flatten().sum::<f64>();
         let sq_sum = self.samples.iter().flatten().map(|s| s * s).sum::<f64>();
@@ -59,13 +59,12 @@ impl StepFitting {
         }
         for (ret, sample) in ret.iter_mut().zip(self.samples.iter()) {
             let sample_avg = if sample.is_empty() {
-                4000.0
+                5000.0
             } else {
                 sample.iter().sum::<f64>() / sample.len() as f64
             };
 
-            const ROAD_WEIGHT: f64 = 2.0;
-            *ret = (sample_avg + ROAD_WEIGHT * *ret) / (1.0 + ROAD_WEIGHT);
+            *ret = (sample_avg + road_weight * *ret) / (1.0 + road_weight);
             *ret = ret.max(0.0);
         }
         ret
