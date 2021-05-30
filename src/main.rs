@@ -1,5 +1,5 @@
 use {
-    consts::{GRID_SIZE, N_QUERY},
+    consts::{GRID_SIZE, N_QUERY, TIME_LIMIT},
     dijkstra::dijkstra,
     judge::{Judge, Query, StdioJudge},
     step_fitting::StepFitting,
@@ -8,12 +8,14 @@ use {
 };
 
 fn main() {
-    let timer = Timer::new(2.0);
+    let timer = Timer::new(TIME_LIMIT);
     solve(&mut StdioJudge);
     eprintln!("{}", timer.elapsed());
 }
 
 fn solve(judge: &mut impl Judge) {
+    let timer = Timer::new(TIME_LIMIT);
+
     let mut step_h = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
     let mut step_v = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
 
@@ -22,20 +24,8 @@ fn solve(judge: &mut impl Judge) {
     for turn in 0..N_QUERY {
         let Query { start, goal } = judge.next_query();
 
-        let time = turn as f64 / N_QUERY as f64;
-        let road_weight = if time < 0.3 {
-            time * 1.55 / 0.3
-        } else {
-            2.0 - time * 1.5
-        };
-        let mut len_h = step_h
-            .iter()
-            .map(|step| step.vals(road_weight))
-            .collect::<Vec<_>>();
-        let mut len_v = step_v
-            .iter()
-            .map(|step| step.vals(road_weight))
-            .collect::<Vec<_>>();
+        let len_h = step_h.iter().map(StepFitting::vals).collect::<Vec<_>>();
+        let len_v = step_v.iter().map(StepFitting::vals).collect::<Vec<_>>();
         let edge_val = |edge: Edge| match edge {
             Edge::H(i, j) => len_h[i][j],
             Edge::V(i, j) => len_v[j][i],
@@ -48,30 +38,36 @@ fn solve(judge: &mut impl Judge) {
         let length = judge.path_length(&path) as f64;
         history.push((edges.clone(), length));
 
-        len_h = step_h
-            .iter()
-            .map(|step| step.vals(road_weight))
-            .collect::<Vec<_>>();
-        len_v = step_v
-            .iter()
-            .map(|step| step.vals(road_weight))
-            .collect::<Vec<_>>();
-        let edge_val = |edge: Edge| match edge {
-            Edge::H(i, j) => len_h[i][j],
-            Edge::V(i, j) => len_v[j][i],
+        let n_recalc = if timer.elapsed() > 0.9 {
+            1
+        } else if turn % 10 == 0 {
+            step_h.iter_mut().for_each(StepFitting::clear);
+            step_v.iter_mut().for_each(StepFitting::clear);
+            50
+        } else {
+            3
         };
 
-        step_h = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
-        step_v = vec![StepFitting::new(GRID_SIZE - 1); GRID_SIZE];
-        for (edges, length) in &history {
-            let length_e_sum = edges.iter().map(|&edge| edge_val(edge)).sum::<f64>();
+        for _ in 0..n_recalc {
+            let len_h = step_h.iter().map(StepFitting::vals).collect::<Vec<_>>();
+            let len_v = step_v.iter().map(StepFitting::vals).collect::<Vec<_>>();
+            let edge_val = |edge: Edge| match edge {
+                Edge::H(i, j) => len_h[i][j],
+                Edge::V(i, j) => len_v[j][i],
+            };
+            step_h.iter_mut().for_each(StepFitting::clear);
+            step_v.iter_mut().for_each(StepFitting::clear);
 
-            for &edge in edges {
-                let len = edge_val(edge);
-                let sample = length * len / length_e_sum;
-                match edge {
-                    Edge::H(i, j) => step_h[i].add(j, sample),
-                    Edge::V(i, j) => step_v[j].add(i, sample),
+            for (edges, length) in &history {
+                let length_e_sum = edges.iter().map(|&edge| edge_val(edge)).sum::<f64>();
+
+                for &edge in edges {
+                    let len = edge_val(edge);
+                    let sample = length * len / length_e_sum;
+                    match edge {
+                        Edge::H(i, j) => step_h[i].add(j, sample),
+                        Edge::V(i, j) => step_v[j].add(i, sample),
+                    }
                 }
             }
         }
